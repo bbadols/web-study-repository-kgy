@@ -1,0 +1,48 @@
+- 서블릿 계층 구조 Servlet Hierarchy
+  최상위 인터페이스
+  <<interface>>
+  Servlet : init(), service(), destroy()와 같은 abstract method가 선언되어 있음
+  설명 : 모든 자바 웹 프로그램은 Servlet Interface의 하위 클래스이다.
+ 
+  위의 Servlet interface를 implements 하는 하위 Abstract class
+  <<abstract class>>
+  GenericServlet : 프로토콜에 독립적인 서버 프로그램을 위한 클래스
+ 				   일반적인 서버 차원에서 가져야 하는 기능을 자식에게 물려주고
+ 				   프로토콜에 특화된 자식 차원에서 구현해야 하는 service(request,response) 메서드는
+ 				   abstract method 선언해 구현을 강제한다(ex- 피자 서비스의 abstract topping 메서드)
+
+  위의 abstract class 인 GenericServlet을 상속받는(extends) 하위 Abstract class가 존재
+  <<abstract class>>
+  HTTPServlet : Web Program을 위한 HTTP 프로토콜에 특화된 클래스
+  				웹 서비스에 필요한 기능을 자식에게 물려준다
+  				자바 웹 프로그램은 HTTPServlet을 상속받아야 한다
+  				(모든 Servlet과 JSP : 예 - Spring의 DispatcherServlet 또한 HttpServlet 자식임)
+				동작원리 -> 부모 GenericServlet의 abstract method인 service(request,response)를
+				implements 구현하여 Web Container가 service 메서드를 호출하면
+				구현한 service 메서드가 HttpRequest Method에 따라 개발자가 구현한
+				doGet or doPost 등의 메서드로 dispatch(위임)하여 실행되고 응답된다.
+
+- Form과 Servlet(or JSP)연동
+  client
+  <form action="처리할 서버 프로그램 url" method="get or post"> --request--> Web Server -- WebContainer -- MyServlet
+  <input type="text" name="userId">														service 호출 --> service() --dispatch -> doGet() or doPost()
+  <button type="submit">검색</button>													<--response--
+  
+  
+  ***********서블릿 공부시 재사용할 코드**************
+
+// 응답시 컨텐트 타입을 설정, 브라우저에서 지금 응답은 HTML 문서야 라고
+		// 메세지를 보내기 위함
+		response.setContentType("text/html;charset=UTF-8");
+		// HTML을 브라우저로 전송하기 위한 출력 스트림
+		PrintWriter out = response.getWriter();
+		out.println("<html>");
+		out.println("<head>");
+		out.println("<title>Servlet Study</title>");
+		out.println("</head>");
+		out.println("<body>");
+		out.println("<h3>Hello Servlet</h3>");
+		out.println("</body>");
+		out.println("</html>");
+		out.close();
+	 
