@@ -177,10 +177,8 @@ WAS : Web Application Server ( Web Server(ex-apache) + Web Container(ex-tomcat) 
          loadOnStartup = 1
 	 	웹 어플리케이션이 실행이 시작되는 시점에 가장 우선적으로
 	 	위 옵션이 명시된 서블릿을 초기화합니다. 
-	 	서블릿 라이프 사이클 구조상 클라이언트의 첫 요청 시점에 
-	 	서블릿이 초기화 작업을 하므로 
-	 	웹 어플리케이션에서 중요한 역할을 하는 서블릿 ( 초기화 작업이 많은 서블릿 포함)
-	 	은 위 옵션이 유용합니다.                     								      
+	 	서블릿 라이프 사이클 구조상 클라이언트의 첫 요청 시점에 서블릿이 초기화 작업을 하므로 
+	 	웹 어플리케이션에서 중요한 역할을 하는 서블릿 ( 초기화 작업이 많은 서블릿 포함)은 위 옵션이 유용합니다.
  
  **ServletConfig &  ServletContext**
 -  ServletConfig 
@@ -201,7 +199,21 @@ WAS : Web Application Server ( Web Server(ex-apache) + Web Container(ex-tomcat) 
  구체적으로 어떤 곳에 사용되는가 ?  웹어플리케이션 전체 설정 관리 
  														 각각의 서블릿(jsp 포함) 간 데이터 공유 지원 
  														 
+ ServletConfig와 ServletContext
+ - ServletConfig : 설정하는 객체
+ - ServletContext : Web application의 환경
+ 구분 ServletConfig			ServletContext
+ 	  개별 서블릿당 하나			웹 어플리케이션당 하나
+ 	  개별 서블릿 전용				웹 어플리케이션 내의 웹 프로그램(Servletor JSP..)
+ 	  @애너테이션 또는				web.xml
+ 	  web.xml
+ Spring과 연관성 개별 Bean 설정 ApplicationContext
  
+ **ServletContextListener**
+ :Application LifeCycle Listener
+ 웹 어플리케이션 시작 시점과 종료 시점의 이벤트를 감지하여
+ 시작 시점에 필요한 초기화 작업(예:보안)과 contextInitialized()
+ 종료 시점에 필요한 작업(예:백업,로깅)을 정의해 실행 시킬 수 있다. contextDestroyed()
  
  
  

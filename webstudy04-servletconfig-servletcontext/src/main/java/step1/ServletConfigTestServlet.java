@@ -52,6 +52,9 @@ public class ServletConfigTestServlet extends HttpServlet {
 		String securityInfo = 
 				this.getServletConfig().getServletContext().getInitParameter("securityConfigInfo");
 		out.println("ServletContext 의 securityInfo: "+securityInfo);
+		/******ServletContextListener에서 할당한 보안 정보를 반환*******/
+		String securityRoleInfo = this.getServletConfig().getServletContext().getAttribute("securityRoleInfo").toString();
+		out.println("<br><strong>"+securityRoleInfo+"</strong>");
 		out.println("</body>");
 		out.println("</html>");
 		out.close();
