@@ -585,7 +585,7 @@ JSP 페이지에서 JSTL 사용 선언부
    			계층 구조를 형성(interface와 abstract)
    
    장점 : 단일 책임 원칙 준수 -> 각 command (Controller(request))는 하나의 기능만 담당
-   		확장성 향상 -> 비즈니스(업무)가 추가되면 해당 Command(Controller)만 추가하면 됨(이전에는 기존 코드를 수정했어야 했다)
+   		확장성 향상 -> 비즈니스(업무)가 추가되면 해당 Command(Controller)만 추가하면 됨(이전에는 기존 코드를 			수정했어야 했다)
    		테스트 용이성 -> 각 Command(Controller) 별로 독립 테스트
    		코드 재사용성 증대
    		유지보수성 향상
@@ -594,9 +594,7 @@ JSP 페이지에서 JSTL 사용 선언부
   String의 @Controller -> Command(or Controller)
   @RequestMapping 메서드가 하나의 Command(Controller) 역할을 한다.
   
-  *************************************************************************	
-     												
-  ***webstudy11-MVC-Singleton-Command-Pattern***
+  *************************************************************************
   
   Command Pattern 적용 후 refactoring 할 점
   : FrontControllerServlet(Front)의 doDispatch()에서
@@ -604,10 +602,92 @@ JSP 페이지에서 JSTL 사용 선언부
    --> 단일 책임 원칙에 의해 객체 생성부를 별도의 클래스로 분리(Factory패턴) 필요성 제기
     다음 Version에서 Factory 디자인 패턴을 적용해보자.
   
+  ***webstudy12-MVC-Singleton-Command-Factory***
+  Ver 5
   
+  *************************************************************************
+	Factory Design Pattern : 객체 생성 로직을 별도의 클래스로 분리하여 전담하게 하는 패턴
+									 사용하는 측에서 구체적인 클래스를 파악하지 않아도
+									 생성할 수 있도록 한다
+									 -> 결합도를 느슨하게 한다 : Loose Coupling
+  실생활 비유
+  자동차 공장
+  -고객 :SUV 한대 주세요
+  -공장 : 내부적으로 적절한 SUV 생성
+  -고객 : 제작 과정을 몰라도 SUV를 받아서 사용
   
+  만약 Factory 패턴을 쓰지 않는다면?
+  사용하는 측에서 일일히 객체를 파악하고 생성
+  다시 말하면 요청 별로 요청 처리 객체를 일일히 생성해주어야 함
+  -> 문제점: 사용하는 측과 구체적 객체와는 강한 결합도
+  			  새롭게 요청 처리 클래스가 생기면 여러 곳에서 수정해야 함-> 확정성이 낮음
+  			  코드 중복 발생 -> 생산성이 저하
+
+  Factory Pattern 도입
+  사용하는 측에서는 command(요청종류)만 전달하면 Factory가 알아서 해당 구채적인 객체를
+  생성하여 반환해줌
+  ->장점 : 객체 생성 로직 중앙화(단일 책임 원칙)
+  			 사용하는 측 (FrontControllerServlet)과 실제 요청을 처리할 구현객체와의 결합도가
+  			 느슨해진다
+  			 확장성 향상 -> 만약 요구사항이 추가되어 고객정보수정 컨트롤러가
+  			 새롭게 구현되어야 할 경우 Factory Pattern 적용 이전에는
+  			 FrontControllerServlet의 doDispatch 메서드 내부의 객체 생성부의 코드가
+  			 업데이트가 되어야 하는 구조였음 -> 결합도가 높아 유지보수성이 낮은 구조
+  			 Factory Pattern을 적용하면 사용하는 측(FrontControllerServlet)의 코드는
+  			 수정 필요가 없음(결합도가 느슨해져 유지보수성, 확장성이 향상)
+  			 
+  	Spring 과의 연관성
+  		Spring IOC Container -> Factory 패턴 적용
+  		Spring MVC의 HandlerMapping이 Factory 패턴 적용			 
   
+   ㅇ
+  	Controller: 인터페이스, Command Design Pattern 요청 처리 객체를 캡슐화 하여 다형성을 지원하는
+  	디자인 패턴
+  	HandlerMapping : Factory Pattern 객체 생성을 전담하는 디자인 패턴, 사용하는 측과 공급하는 측의
+  	결합도를 느슨
   
+  Ver5 : Factory Design Pattern을 적용
+  			사용하는 측 (FrontControllerServlet)과 서비스 공급하는 측(개별 Controller들)과의
+  			결합도를 낮추어서 유지보수성, 확장성을 향상
+  			객체 생성 전담 Factory인 HandlerMapping으로 단일 책임 원칙을 강화
+  
+  			refactoring 할 점 : Simple Factory 패턴 (정적인 팩토리)
+  									 요청 수가 증가할수록 Factory인 HandlerMapping의 객체 생성 메서드인
+  									 create의 코드량이 증가 -> Dynamic 즉 동적인 팩토리 구성한다면...
+  									 								ver6에서 Dynamic Factory Design Pattern 적용
+  									 										--> Reflection API 사용
+  									 
+  			public Controller create(String command) {
+				Controller controller = null;
+				if (command.equals("findbyid")) {
+					controller = new FindCustomerByIdController();
+				}else if
+				....
+				
+	Ver 6 : Dynamic Factory Pattern 적용
+			  우리의 Refactoring지점은 클라이언트의 요청(command)에 대한 처리 로직을 정의한 객체들을
+			  HandlerMapping Factory 에서 전담해 객체를 생성 -> 요청의 종류가 증가( 업무 추가 )됨으로
+			  개별 요청 처리 컨트롤러 객체가 신규로 계속 추가되면 Ver5 정적 팩토리 스타일은 매번 컨트롤러 추가 될 때마다 코드를 수정
+			  => 자동화 할 수 있는 방안 : Reflection API를 이용해 팩토리(HandlerMapping)를 Dynamic하게
+			  동작시키도록 버전업을 한다
+			  
+	기술개념 정리		  
+	Reflection API: 런타임시 동적으로 객체를 생성하고 제어하는 기술
+ 	
+ 	일반적으로 필요시 객체를 생성 : Person p = new Person(); 와 같이 new로 생성
+ 	Reflection API는 runtime(런타임)일 때 동적(Dynamic)으로 객체를 생성,
+ 	제어하기 위한 기술 
+ 	
+ 	단위 테스트 test1,test2 기술 적용
+ 	
+ 	기존 Ver5를 Reflection API를 이용한 Dynamic Factory를 적용해 HandlerMapping을 정적 팩토리에서 동적 팩토리로 버전업을 해본다
+ 	Ver6 : 클라이언트에서 command=FindCustomerById로 FrontController로 전달 <--> HandlerMapping(Factory)가 컨트롤러 객체 생성 전담
+ 			 Dynamic Factory를 위한 작업 : HandlerMapping의 create(command) 구현부만 업데이트
+ 			 (Command와 Factory 패턴을 적용한 성과)
+ 	
+ 	
+  *************************************************************************
+
   
   
   
