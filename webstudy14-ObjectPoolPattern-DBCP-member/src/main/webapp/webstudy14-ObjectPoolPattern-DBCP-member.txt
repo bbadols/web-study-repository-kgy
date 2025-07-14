@@ -378,7 +378,7 @@ WAS : Web Application Server ( Web Server(ex-apache) + Web Container(ex-tomcat) 
     Model 2 Architecture 의 핵심적인 디자인 패턴이 MVC 패턴이다. 
     Model2 MVC or MVC or Web MVC or MVC 2 등으로 불린다 
     
-    Model : 데이터 액세스 로직과 비즈니스 로직 담당
+    Model : 데이터와 비즈니스 로직 담당
     View :  응답 전담 ( 화면 표시 담당 , Http Response Message 를 전담 ) 
     Controller :  요청 처리를 전담,  Model 과 View 를 제어 
                        상세 -> 요청에 대한 분석, 분석에 따른 Model 연동 
@@ -476,247 +476,304 @@ JSP 페이지에서 JSTL 사용 선언부
 
 중요 포인트: 톰캣 10.1은 Jakarta EE 10을 기반으로 하므로 jakarta.tags.core 네임스페이스를 사용해야 함      
       
+**webstudy10-MVC-FrontController-DesignPattern-inst**
+
+*********************************************************************
+- Front Controller Design Pattern 
+  : 모든 클라이언트의 요청을 하나의 진입점으로 통합하여 처리하는 설계 패턴 
+  
+  실생활의 예 
+  호텔 프론트 
+  - 모든 고객 요청이 프론트 데스크로 집중 
+  - 프론트 데스크에서 요청에 대한 적절한 부서 또는 담당자로 연결 
+  - 체크인 , 홈서비스, 청소 등 각각 전담 부서 처리 
+  
+  Front Controller 가 없다면 ?
+  문제 상황 : 각 기능마다 별도 입구를 찾아야 함 
+  - 회원 가입 ->  RegisterMemberServlet 
+  - 로그인 -> LoginServlet 
+  - 로그아웃 -> LogoutServlet
+  - 상품조회 ->  FindProductByIdServlet
+  - 주문처리 -> OrderProcessingServlet 
+  등 등 	
+  
+   결과 :  프론트가 없다면 
+     공통 처리 로직 중복 ( 보안 , 로깅 , 인코딩 등 ) 
+     일관성 없는 처리 방식 
+     관리 포인트 급증 
+     생산성 저하 및 유지보수의 어려움 
+     
+     Front Controller Design Pattern  도입 후 
+     위 문제의 해결책 : 모든 요청을 하나의 입구로 처리 
+     
+     장점 :  공통 로직의 중앙화 ( 보안 , 로깅 , 예외처리 등 ) 
+     		    일관된 요청 처리 흐름 
+     		    관리 포인트 단일화 
+     		    확장성과 유지보수성 향상 
+     		    
+     Spring 과 연관성 :  Spring MVC 의 DispatcherServlet 이 Front Controller Pattern 이 
+     							  적용된 Front Controller 역할을 함 		           
+  ****************************************************************************************    
+      FrontController  Ver1 : 기본 Front Controller -> 모든 클라이언트의 요청을 하나의 진입점으로 모았음
+      // 모든 로직이 doDispatch에 집중 
+      doDispatch(request,response){
+      		if(requestType.equals("find"){
+      			// 직접 요청 처리 ( 비즈니스 처리 )
+      		}else if(requestType.equals("register"){
+      			// 직접 요청 처리 ( 비즈니스 처리 )
+      		}
+      }
+      문제점 : 코드 비대화, 확장성 부족 ( 만약 새로운 업무 추가시 공통 코드를 계속 변경 ) 
+      
+      FrontController  Ver2 : 메서드 분리 , 단일 책임 원칙 적용 
+      
+      doDispatch(request,response){
+      		if(){
+      				findCustomerById(request,response);
+      		}else if(){
+      				registerCustomer(request,response); 
+      		}
+      }
+      
+      findCustomerById(request,response){
+      }
+      registerCustomer(request,response){
+      }
+      
+      Ver2 의 개선점 : 메서드 별로 분리, 가독성이 향상 
+      							하지만 여전히 한 클래스에 모든 로직 있어서 
+      							업무 추가시 클래스가 비대해지고 관리가 어려움 
       
       
-**webstudy10-MVC-FrontController-DesignPattern**
-
--Front Controller Design Pattern
- : 모든 클라이언트의 요청을 하나의 진입점으로 통합하여 처리하는 설계 패턴
- 
- 실생활의 예
- 호텔 프론트
- - 모든 고객 요청이 프론트 데스크로 집중    
- - 프론트 데스크에서 요청에 대한 적절한 부서 또는 담당자로 연결
- - 체크인, 홈서비스, 청소 등 각각 전담 붓서 처리
- 
- Front Controller가 없다면?
- 문제 상황 : 각 기능마다 별도 입구를 찾아야 함
- - 회원가입 -> RegisterMemberServlet
- - 로그인 -> LoginServlet
- - 로그아웃 -> LogoutServlet
- - 상품조회 -> FindProductByIdServlet
- - 주문처리 -> OrderProcessingServlet
- 
- 결과 : 프론트가 없다면
-  공토 처리 로직 중복(보안, 로깅, 인코딩 등)
-  일관성 없는 처리 방식
-  관리 포인트 급증
-  생산성 저하 및 유지보수의 어려움
-  
-  Front Controller Design Pattern 도입 후
-  위 문제의 해결책 : 모든 요청을 하나의 입구로 처리
-  
-  장점: 공통 로직의 중앙화(흐름, 로깅, 예외처리 등)
-  		 일관된 요청 처리 흐름
-  		 관리 포인트 단일화
-  		 확장성과 유지보수성 향상
-  Spring과 연관성: SpringMVC의 DispatcherServlet이 Front Controller Pattern이
-  적용된 Front Controller 역할을 함
-  *********************************************************
-  FrontDesignPattern
-  FrontController Ver1 : 기본 Front Controller -> 모든 클라이언트의 요청을 하나의 진입점으로 모았음
-  // 모든 로직이 doDispatch에 집중
-  doDispatch(requet,response){
-  		if(requestType.equals("find"){
-  			// 직접 요청 처리 (비즈니스 처리)
-  		}else if(requestType.equals("register"){
-  			// 직접 요청 처리 (비즈니스 처리)
-  		}
-  }
-
-  문제점 : 코드 비대화, 확장성 부족(만약 새로운 업무 추가시 공통 코드를 계속 변경)
+      FrontController Ver3 : 클래스 분리 
       
-  FrontController Ver2 : 메서드 분리, 단일 책임 원칙 적용
-  doDispatch(request,response){
- 		if(){
- 			findCustomerById(request,response);
- 		}else if(){
- 			registerCustomer(request,response);
- 		}
-  }
-  
-  findCustomerById(request,response){
-  }
-  registerCustomer(request,response){
-  }   
+      // 각 요청 처리 기능별 클래스를 분리 
+      FrontControllerServletVer3				  					class	FindCustomerController   , class   RegisterCustomerController 
+      doDispatch(request,response){				
+      		if(){
+      				FindCustomerController controller = new FindCustomerController(); 
+      		}else if(){
+      				RegisterCustomerController controller = new RegisterCustomerController(); 
+      		}
+      }
     
-  Ver2의 개선점 : 메서드 별로 분리, 가독성이 향상
-  					 하지만 여전히 한 클래스에 모든 로직 있어서
-  					 업무 추가시 클래스가 비대해지고 관리가 어려움
+    ******************************************************************************
+    Command Design Pattern :  Encapsulation
+                                              요청 처리를 전담하는 객체를 캡슐화하는 패턴 
+    										  각 기능 별로 독립적인 처리 객체를 만들어 관리 
+    										  -> 효과 
+    										  사용하는 측 ( Front Controller ) 에서 
+    										  개별 컨트롤러를 보지 않고 
+    										  표준화된 ( 추상화된 ) Controller 인터페이스에 의거해
+    										  단일한 방식으로 제어할 수 있다. 
+    										  풀어서 말하면  하나의 단일한 Controller 의 
+    										  handleRequest() 라는 소통방식으로 
+    										  다양한 요청 처리를 하는 컨트롤러 객체들을 
+    										  각자의 방식으로 실행시켜 응답하게 한다 
+    										  -> Polymorphism 이 지원됨 
+    										  
+    실생활 비유 :   식당 주문 시스템 
+    						고객 주문 ( request ) -  주문서를 처리하는 객체 ( Command 객체 : 우리는 Controller라고 부르겠음 )										  
+    						주문서별로 전담 요리사 배정 
+    						짬뽕 주문 -> 중화요리 요리사 
+    						파스타 주문 -> 이탈리아 요리사 
+    						
+    Command Pattern 을 적용하지 않으면 
+    FrontController 가  모든 기능을 구현 
+    -> 문제점 : 코드 비대화 , 단일 책임 원칙 위반 , 새 기능 추가시 공통 클래스를 수정 , 테스트 어려움, 가독성 저하 
     
-  FrontController Ver3 : 클래스 분리  
-  // 각 요청 처리 기능별 클래스를 분리
-  FrontControllerServletVer3			 classFindCustomerController ,CLass RegisterCustomerController
-  doDispatch(request,response){
-  		if(){
-  			FindCustomerController controller = new FindCustomerController();
-  		}else if(){
-  			RegisterCustomerController controller = new RegisterCustomerController();
-  		}
-
-  }
+    Command Pattern  도입하면 
+    각 기능별 ( 요청처리 ) 로 독립적인 Command(Controller) 객체를 생성
+    캡슐화 ->  소통부와 구현부를 분리 , FrontController는 소통부와 연동, 내부 구현부는 독립적으로 존재 
+    				계층구조를 형성 ( interface 와 abstract ) 				
+    				
+    장점 :  단일 책임 원칙 준수 -> 각 command ( Controller ) 는 하나의 기능만 담당 
+               확장성 향상 -> 비즈니스가 추가되면 해당 Command( Controller ) 만 추가하면 됨 ( 이전에는 기존 코드를 수정해야 했음 ) 
+               테스트 용이성 -> 각 Command ( Controller ) 별로 독립 테스트 
+               코드 재사용성 증대 
+               유지보수성 향상 
+     
+     Spring 과의 연관성 
+     String 의 @Controller  ->   Command ( or Controller ) 
+     @RequestMapping  메서드가  하나의 Command(Controller ) 역할              						  
     
-  *************************************************************************
-  Command Design Pattern(설계 패턴): Encapsulation
-  											  요청 처리를 전담하는 객체를 *캡슐화*하는 패턴
-  											  각 기능별로 독립적인 처리 객체를 만들어 관리
-  											  => 효과
-  											  사용하는 측 (Front Controller)에서 개별 컨트롤러를
-  											  보지 않고 표준화된(추상화된) Controller 인터페이스에
-  											  의거해 단일한 방식으로 제어할 수 있다.
-  											  풀어 말하면 하나의 단일한 Controller의 handleRequest()라는
-  											  소통방식으로 다양한 요청 처리를 하는 컨트롤러 객체들을 각자의
-  											  방식으로 실행시켜 응답하게 한다
-  											  -> 다양성(Polymorphism)이 지원됨
+    
+    *******************************************************************************
+    Command Pattern 적용 후  refactoring 할 점 
+    
+    :  FrontControllerServlet(Front)  의 doDispatch() 에서 
+       클라이언트의 요청을 처리할 개별 컨트롤러 객체 생성부가 요청 사항이 증가할 수록 
+       코드량이 증가 ---> 단일 책임 원칙의 의해 객체 생성부를 별도의 클래스로 분리 ( Factory 패턴 ) 필요성 제기
+       다음 Version 에서 Factory 디자인 패턴을 적용해보자 
+     												
+   Version 5  												
+  ***********************************************************
+  Factory Design Pattern :  객체 생성 로직을 별도의 클래스로 분리하여 전담하게 하는 패턴
+  										  사용하는 측에서 구체적인 클래스를 파악하지 않아도
+  										  생성할 수 있도록 한다 
+  										  -> 결합도를 느슨하게 한다 Loose Coupling 
+  실생활 비유 
+  자동차 공장 
+  - 고객 : SUV 한대 주세요 
+  - 공장 : 내부적으로 적절한 SUV 생성 
+  - 고객 : 제작 과정을 몰라도 SUV 를 받아서 사용 										  
   
-  실생활 비유 : 식당 주문 시스템
-  				  고객 주문 (request)- 주문서를 처리하는 객체(Command 객체 : 우리는 Controller라 부르겠음)
-  				  주문서 별로 전담 요리사 배정
-  				  짬뽕 주문 -> 중화요리 요리사
-  				  파스타 주문 -> 양식 요리사
-  				  
-  	Command Pattern 을 적용하지 않으면
-  	FrontController가 모든 기능을 구현
-  	-> 문제점 : 코드 비대화, 단일 책임 원칙 위반, 새 기능 추가시 공통 클래스를 수정, 테스트 어려움, 가독성 저하
-  	
-  	Command Pattern 도입하면
-  	각 기능별(요청처리)로 독립적인 Command(Controller) 객체를 생성
-   캡슐화 -> 소통부와 구현부를 분리, FrontController는 소통부와 연동, 내부 구현부는 독립적으로 존재
-   			계층 구조를 형성(interface와 abstract)
-   
-   장점 : 단일 책임 원칙 준수 -> 각 command (Controller(request))는 하나의 기능만 담당
-   		확장성 향상 -> 비즈니스(업무)가 추가되면 해당 Command(Controller)만 추가하면 됨(이전에는 기존 코드를 			수정했어야 했다)
-   		테스트 용이성 -> 각 Command(Controller) 별로 독립 테스트
-   		코드 재사용성 증대
-   		유지보수성 향상
-   		
-  Spring 과의 연관성
-  String의 @Controller -> Command(or Controller)
-  @RequestMapping 메서드가 하나의 Command(Controller) 역할을 한다.
-  
-  *************************************************************************
-  
-  Command Pattern 적용 후 refactoring 할 점
-  : FrontControllerServlet(Front)의 doDispatch()에서
-  	 클라이언트의 요청을 처리할 개별 컨트롤러 객체 생성부가 요청사항이 증가 할 수록 코드량이 증가
-   --> 단일 책임 원칙에 의해 객체 생성부를 별도의 클래스로 분리(Factory패턴) 필요성 제기
-    다음 Version에서 Factory 디자인 패턴을 적용해보자.
-  
-  ***webstudy12-MVC-Singleton-Command-Factory***
-  Ver 5
-  
-  *************************************************************************
-	Factory Design Pattern : 객체 생성 로직을 별도의 클래스로 분리하여 전담하게 하는 패턴
-									 사용하는 측에서 구체적인 클래스를 파악하지 않아도
-									 생성할 수 있도록 한다
-									 -> 결합도를 느슨하게 한다 : Loose Coupling
-  실생활 비유
-  자동차 공장
-  -고객 :SUV 한대 주세요
-  -공장 : 내부적으로 적절한 SUV 생성
-  -고객 : 제작 과정을 몰라도 SUV를 받아서 사용
-  
-  만약 Factory 패턴을 쓰지 않는다면?
-  사용하는 측에서 일일히 객체를 파악하고 생성
-  다시 말하면 요청 별로 요청 처리 객체를 일일히 생성해주어야 함
-  -> 문제점: 사용하는 측과 구체적 객체와는 강한 결합도
-  			  새롭게 요청 처리 클래스가 생기면 여러 곳에서 수정해야 함-> 확정성이 낮음
-  			  코드 중복 발생 -> 생산성이 저하
-
-  Factory Pattern 도입
-  사용하는 측에서는 command(요청종류)만 전달하면 Factory가 알아서 해당 구채적인 객체를
-  생성하여 반환해줌
-  ->장점 : 객체 생성 로직 중앙화(단일 책임 원칙)
-  			 사용하는 측 (FrontControllerServlet)과 실제 요청을 처리할 구현객체와의 결합도가
-  			 느슨해진다
-  			 확장성 향상 -> 만약 요구사항이 추가되어 고객정보수정 컨트롤러가
-  			 새롭게 구현되어야 할 경우 Factory Pattern 적용 이전에는
-  			 FrontControllerServlet의 doDispatch 메서드 내부의 객체 생성부의 코드가
-  			 업데이트가 되어야 하는 구조였음 -> 결합도가 높아 유지보수성이 낮은 구조
-  			 Factory Pattern을 적용하면 사용하는 측(FrontControllerServlet)의 코드는
-  			 수정 필요가 없음(결합도가 느슨해져 유지보수성, 확장성이 향상)
-  			 
-  	Spring 과의 연관성
-  		Spring IOC Container -> Factory 패턴 적용
-  		Spring MVC의 HandlerMapping이 Factory 패턴 적용			 
-  
-   우리 웹 어플리케이션에서  Factory Design Pattern 을 적용해보자
+  만약 Factory Pattern 이 지원되지 않으면? 
+  사용하는 측에서 일일히 객체를 파악해서 생성 
+  다시 말하면  요청 별로 요청 처리 객체를 일일히 생성해주어야 함 
+  -> 문제점 :  사용하는 측과  구체적 객체와는 강한 결합도 
+  				    새롭게 요청 처리 클래스가 생기면 여러 곳에서 수정해야 함 -> 확장성이 낮음 
+  				    코드 중복 발생 -> 생산성 저하 
+  				    
+  Factory Pattern 도입 
+  사용하는 측에서는 command(요청종류) 만 전달하면 Factory 가 알아서 해당 구체적인 객체를
+  생성해서 반환해줌 
+  -> 장점 :  객체 생성 로직 중앙화 ( 단일 책임 원칙 ) 
+                사용하는 측 (FrontControllerServlet ) 과  실제 요청을 처리할 구현객체와의 
+                결합도가 느슨해진다 
+                확장성 향상 -> 다시 말하면 만약 요구사항이 추가되어 고객정보수정컨트롤러가 
+                새롭게 구현되어야 할 경우 Factory Pattern 적용 이전에는 
+                FrontControllerServlet 의 doDispatch  메서드 내부의  객체 생성부 코드가 
+                업데이트 되어야 하는 구조였음 -> 결합도가 높아 유지보수성이 낮은 구조 
+                Factory Pattern 을 적용하면 	사용하는 측 (FrontControllerServlet)의 코드는 
+                수정 필요가 없음 ( 결합도가 느슨해져 유지보수성 , 확장성이 향상 ) 
+                
+    Spring 과의 연관성 
+      Spring IOC Container -> Factory 패턴 적용 
+      Spring MVC 의 HandlerMapping 이 Factory 패턴 적용             
+      
+      우리 웹 어플리케이션에서  Factory Design Pattern 을 적용해보자
       컨트롤러 영역의 주요 컴포넌트 
       FrontControllerServlet :  FrontController Design Patter -> 모든 클라이언트 요청을 하나의 진입점으로 모아 공통 정책을 일관성 있게 처리하는 디자인 패턴 
       Controller :  인터페이스  ,  Command Design Pattern   요청 처리 객체를 캡슐화 하여 다형성을 지원하는 디자인 패턴 
-      HandlerMapping :  Factory  Pattern  객체 생성을 전담하는 디자인 패턴 , 사용하는 측과 공급하는 측의 결합도를 느슨
-  
-  Ver5 : Factory Design Pattern을 적용
-  			사용하는 측 (FrontControllerServlet)과 서비스 공급하는 측(개별 Controller들)과의
-  			결합도를 낮추어서 유지보수성, 확장성을 향상
-  			객체 생성 전담 Factory인 HandlerMapping으로 단일 책임 원칙을 강화
-  
-  			refactoring 할 점 : Simple Factory 패턴 (정적인 팩토리)
-  									 요청 수가 증가할수록 Factory인 HandlerMapping의 객체 생성 메서드인
-  									 create의 코드량이 증가 -> Dynamic 즉 동적인 팩토리 구성한다면...
-  									 								ver6에서 Dynamic Factory Design Pattern 적용
-  									 										--> Reflection API 사용
-  									 
-  			public Controller create(String command) {
+      HandlerMapping :  Factory  Pattern  객체 생성을 전담하는 디자인 패턴 , 사용하는 측과 공급하는 측의 결합도를 느슨 
+      
+      			    
+  ver5 :  Factory Design Pattern 을 적용 
+  			 사용하는 측 ( FrontControllerServlet ) 과 서비스 공급하는 측 ( 개별 Controller 들 ) 과의 
+  			 결합도를 낮추어서 유지보수성 , 확장성을 향상 
+  			 객체 생성 전담 Factory 인 HandlerMapping 으로 단일 책임 원칙 강화 
+  			 
+  			 refactoring 할 점  :  Simple Factory 패턴 ( 정적인 팩토리 ) 
+  			 								 요청 수가 증가할수록 Factory인 HandlerMapping 의 객체 생성 메서드인
+  			 								 create 의 코드량이 증가 --> Dynamic 즉 동적인 팩토리 구성한다면 .. 
+  			 								 											 ver6 에서 Dynamic Factory Design Pattern 적용
+  			 								 											 			   ==> Reflection API 
+  			 								 
+  			 public Controller create(String command) {
 				Controller controller = null;
 				if (command.equals("findbyid")) {
 					controller = new FindCustomerByIdController();
 				}else if
-				....
+				...... 
 				
-	Ver 6 : Dynamic Factory Pattern 적용
-			  우리의 Refactoring지점은 클라이언트의 요청(command)에 대한 처리 로직을 정의한 객체들을
-			  HandlerMapping Factory 에서 전담해 객체를 생성 -> 요청의 종류가 증가( 업무 추가 )됨으로
-			  개별 요청 처리 컨트롤러 객체가 신규로 계속 추가되면 Ver5 정적 팩토리 스타일은 매번 컨트롤러 추가 될 때마다 코드를 수정
-			  => 자동화 할 수 있는 방안 : Reflection API를 이용해 팩토리(HandlerMapping)를 Dynamic하게
-			  동작시키도록 버전업을 한다
-			  
-	기술개념 정리		  
-	Reflection API: 런타임시 동적으로 객체를 생성하고 제어하는 기술
+	ver 6  :  Dynamic Factory Pattern 적용 
+				 요구정의 
+				 우리의 Refactoring 지점은    클라이언트의 요청(command)에 대한  처리 로직을 정의한 객체들을 
+				 HandlerMapping Factory 에서 전담해 객체를 생성 ->  요청의 종류가 증가( 업무 추가 )됨으로 
+				 개별 요청 처리 컨트롤러 객체가 신규로 계속 추가되면 ver 5 정적 팩토리 스타일은 매번 컨트롤러 추가 될 때마다 
+				 코드를 수정 ==> 자동화 할 수 있는 방안 : Reflection API 를 이용해 팩토리 ( HandlerMapping ) 를 Dynamic 하게 
+				 동작시키도록 버전업을 한다 
+						 
+	기술 개념 정리 			 
+	Reflection API :    런타임시 동적으로 객체를 생성하고 제어  	
  	
- 	일반적으로 필요시 객체를 생성 : Person p = new Person(); 와 같이 new로 생성
- 	Reflection API는 runtime(런타임)일 때 동적(Dynamic)으로 객체를 생성,
- 	제어하기 위한 기술 
+ 	일반적으로 필요시 객체를 생성 :    Person p = new Person();  와 같이 new 로 생성 
+ 	Reflection API 는  런타임( 프로그램 실행 중 ) 시에 동적 Dynamic 으로 객체를 생성,
+ 	제어하기 위한 기술  			
  	
- 	단위 테스트 test1,test2 기술 적용
+ 	단위 테스트  test1, test2  기술 적용 
  	
- 	기존 Ver5를 Reflection API를 이용한 Dynamic Factory를 적용해 HandlerMapping을 정적 팩토리에서 동적 팩토리로 버전업을 해본다
- 	Ver6 : 클라이언트에서 command=FindCustomerById로 FrontController로 전달 <--> HandlerMapping(Factory)가 컨트롤러 객체 생성 전담
- 			 Dynamic Factory를 위한 작업 : HandlerMapping의 create(command) 구현부만 업데이트
- 			 (Command와 Factory 패턴을 적용한 성과)
+ 	기존 Ver5 를  Reflection API 를 이용한 Dynamic Factory 를 적용해  HandlerMapping을 정적 팩토리에서 동적 팩토리로 버전업을 해본다 
+ 	Ver6 :  클라이언트에서  command=FindCustomerById 로  FrontController 로 전달 <---> HandlerMapping (Factory) 가 컨트롤러 객체 생성 전담
+ 				Dynamic Factory 를 위한 작업 : HandlerMapping 의 create(commad)  구현부만 업데이트 
+ 				( Command 와 Factory 패턴을 적용한 성과 ) 
+  
+  ************************************************************   												
+   Object Pool Design Pattern  객체 풀 패턴 
+   객체 생성 및 소멸에 드는 자원소모를 줄여 성능을 향상시키고 자원 낭비를 막는
+   목적의 디자인 패턴 
+   객체 생성에 드는 비용이 많이 드는 객체 ( ex - 데이터베이스 연동시 Connection 객체 )
+   들을 미리 생성해서  Pool ( 풀 ) 에 저장해두고 사용 후 다시 풀에 
+   반납하여 재사용하는 방식 
+   
+   ->  DBCP : Database Connection Pool    ==> Object Pool Design Pattern 적용의 대표적인 예 
+       db 컨넥션들을 pool 에 미리 생성하고 사용시 빌려주고 사용마치면 반납받는 방식으로 시스템 성능을 향상시키는 기술 
+       
+       DataSource  Interface :  javax.sql.DataSource
+       										   다양한 DBCP 객체들(BasicDataSource , Hikari CP 등 )을 표준화된 방식으로 관리하기 위한
+       										   인터페이스 
+      BasicDataSource : apache tomcat 에서 제공하는 dbcp  구현체 , javax.sql.DataSource interface 의 하위 클래스 ( 구현체 ) 
+      
+      org.kosa.myproject.model.DataSourceManager 에서 DBCP 를 구성해서 Web Application 의 Dao 에서 사용해본다 										    
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+     												
+     												
+     												
+     												 	  
+     		  
+     
+     
+     
+     													
+     													
+     													
+     													
+     													
+     													
+     													
+     													  						
+     						
+     						
+     						
+     						
+     						
+     						
+     						
+     													       	
  	
- 	
-  *************************************************************************
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+		     
